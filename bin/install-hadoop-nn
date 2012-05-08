@@ -1,0 +1,125 @@
+#!/bin/bash
+echo "---- [1] Installing Sun Java JDK 6 ........ ----"
+if [ ! -x /usr/bin/java ]; then
+  echo "deb http://free.nchc.org.tw/ubuntu lucid main restricted universe multiverse" > /etc/apt/sources.list
+  apt-get update
+  apt-get -y install python-software-properties
+  add-apt-repository ppa:ferramroberto/java
+  cat << EOF | /usr/bin/debconf-set-selections
+sun-java6-bin   shared/accepted-sun-dlj-v1-1    select true
+sun-java6-jdk   shared/accepted-sun-dlj-v1-1    select true
+sun-java6-jre   shared/accepted-sun-dlj-v1-1    select true
+EOF
+  apt-get update
+  apt-get -y install sun-java6-jdk
+fi
+
+echo "---- [2] Installing Hadoop 0.20.2 ........ ----"
+cd /opt
+{
+  if [ ! -x /opt/hadoop ]; then
+    sudo wget http://ftp.twaren.net/Unix/Web/apache/hadoop/core/hadoop-0.20.2/hadoop-0.20.2.tar.gz
+    sudo tar zxvf hadoop-0.20.2.tar.gz
+    sudo rm -f hadoop-0.20.2.tar.gz
+    sudo mv hadoop-0.20.2/ hadoop
+    sudo chmod a+w -R hadoop
+    if [ ! -x /var/hadoop ]; then
+      sudo mkdir -p /var/hadoop
+      sudo chmod a+w /var/hadoop
+    fi
+  fi
+}
+
+if [ ! -x /opt/hadoop ]; then
+  echo "---- [ERROR] /opt/hadoop is not exist!! ----"; exit;
+else
+  echo "---- [3] Configure Hadoop NameNode and JobTracker .... ----"
+  cd /opt/hadoop
+  {
+    if [ ! -f /opt/hadoop/conf/hadoop-env.sh ]; then
+      echo "---- [ERROR] /opt/hadoop/conf/hadoop-env.sh is not exist!!  ----"; exit
+    else
+      if [ ! -f /opt/hadoop/conf/hadoop-env.sh.local ]; then
+        echo "---- [3.1] Updating /opt/hadoop/conf/hadoop-env.sh ....  ----"
+        cp /opt/hadoop/conf/hadoop-env.sh /opt/hadoop/conf/hadoop-env.sh.local
+        cat >> conf/hadoop-env.sh << EOF
+export JAVA_HOME=/usr/lib/jvm/java-6-sun
+export HADOOP_HOME=/opt/hadoop
+export HADOOP_CONF_DIR=/opt/hadoop/conf
+EOF
+	cp conf/hadoop-env.sh conf/hadoop-env.sh.full
+      fi
+    fi
+
+    if [ ! -f /opt/hadoop/conf/core-site.xml ]; then
+      echo "---- [ERROR] /opt/hadoop/conf/core-site.xml is not exist!!  ----"; exit
+    else
+      if [ ! -f /opt/hadoop/conf/core-site.xml.local ]; then
+        echo "---- [3.2] Updating /opt/hadoop/conf/core-site.xml ....  ----"
+        cp /opt/hadoop/conf/core-site.xml /opt/hadoop/conf/core-site.xml.local
+        cat > conf/core-site.xml << EOF
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>fs.default.name</name>
+    <value>hdfs://hadoop:9000</value>
+  </property>
+  <property>
+    <name>hadoop.tmp.dir</name>
+    <value>/var/hadoop/hadoop-\${user.name}</value>
+  </property>
+</configuration>
+EOF
+	cp conf/core-site.xml conf/core-site.xml.full
+      fi
+    fi
+
+    if [ ! -f /opt/hadoop/conf/hdfs-site.xml ]; then
+      echo "---- [ERROR] /opt/hadoop/conf/hdfs-site.xml is not exist!!  ----"; exit
+    else
+      if [ ! -f /opt/hadoop/conf/hdfs-site.xml.local ]; then
+        echo "---- [3.3] Updating /opt/hadoop/conf/hdfs-site.xml ....  ----"
+        cp /opt/hadoop/conf/hdfs-site.xml /opt/hadoop/conf/hdfs-site.xml.local
+        cat > conf/hdfs-site.xml << EOF
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>dfs.replication</name>
+    <value>1</value>
+  </property>
+</configuration>
+EOF
+	cp conf/hdfs-site.xml conf/hdfs-site.xml.full
+      fi
+    fi
+
+    if [ ! -f /opt/hadoop/conf/mapred-site.xml ]; then
+      echo "---- [ERROR] /opt/hadoop/conf/mapred-site.xml is not exist!!  ----"; exit
+    else
+      if [ ! -f /opt/hadoop/conf/mapred-site.xml.local ]; then
+        echo "---- [3.3] Updating /opt/hadoop/conf/mapred-site.xml ....  ----"
+        cp /opt/hadoop/conf/mapred-site.xml /opt/hadoop/conf/mapred-site.xml.local
+        cat > conf/mapred-site.xml << EOF
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>mapred.job.tracker</name>
+    <value>hadoop:9001</value>
+  </property>
+</configuration>
+EOF
+	cp conf/mapred-site.xml conf/mapred-site.xml.full
+      fi
+    fi
+
+    if [ ! -d /var/hadoop/hadoop-root/dfs/name ]; then
+      echo "---- [3.4] Formating NameNode ....  ----"
+      /opt/hadoop/bin/hadoop namenode -format
+      /opt/hadoop/bin/hadoop-daemon.sh start namenode
+      /opt/hadoop/bin/hadoop-daemon.sh start jobtracker
+    fi
+  }
+fi
