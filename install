@@ -1,0 +1,42 @@
+#!/bin/bash
+
+### Check Configuration Files ###
+if [ ! -f $(pwd)/conf/master ]; then
+  echo "ERROR: missing configuration file: conf/master"; exit;
+fi
+if [ ! -f $(pwd)/conf/slave ]; then
+  echo "ERROR: missing configuration file: conf/slave"; exit;
+fi
+if [ ! -f /usr/bin/dsh ]; then
+  echo "ERROR: dsh is not installed!! try 'apt-get install dsh'"; exit;
+fi
+if [ ! -d $HOME/.dsh ]; then
+  mkdir -p $HOME/.dsh
+fi
+if [ -f $HOME/.dsh/machines.list ]; then
+  echo "WARN: $HOME/.dsh/machines.list will be overwrited. [Y/n]"; read;
+fi
+
+### Variables ###
+NN_IP=$(cat $(pwd)/conf/master | awk '{ print $1 }')
+DN_IP=$(cat $(pwd)/conf/slave  | awk '{ print $1 }')
+
+### Stage 1 : SSH Key Exchange ###
+cat $(pwd)/conf/master | while read line; do $(pwd)/bin/ssh-cp-id $line; done
+cat $(pwd)/conf/slave | while read line; do $(pwd)/bin/ssh-cp-id $line; done
+
+### Stage 2 : setup hostname ###
+ID=1
+echo "" > $HOME/.dsh/machines.list
+for i in $DN_IP; do 
+  ssh "root@$i" "echo \"node$ID\" > /etc/hostname"
+  ssh "root@$i" "hostname -F /etc/hostname"
+  echo "root@$i" >> $HOME/.dsh/machines.list
+  ID=$(($ID+1))
+done
+
+### Stage 3 : install JDK, Hadoop CHD3, ganglia ###
+ssh "root@$NN_IP" "echo \"deb http://archive.cloudera.com/debian squeeze-cdh3 contrib\" > /etc/apt/sources.list.d/cloudera.list"
+ssh "root@$NN_IP" "echo \"deb http://free.nchc.org.tw/debian stable non-free\" > /etc/apt/sources.list.d/non-free.list"
+ssh "root@$NN_IP" "wget -q archive.key http://archive.cloudera.com/debian/archive.key -O- | apt-key add -"
+ssh "root@$NN_IP" "apt-get update; apt-get -y -f install ntp hadoop-0.20 hadoop-0.20-conf-pseudo sun-java6-jdk gmetad ganglia-webfrontend ganglia-monitor"
