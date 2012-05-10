@@ -16,6 +16,16 @@ DN_IP=$(cat $(pwd)/conf/slave  | awk '{ print $1 }')
 cat $(pwd)/conf/master | while read line; do $(pwd)/bin/ssh-cp-id $line; done
 cat $(pwd)/conf/slave | while read line; do $(pwd)/bin/ssh-cp-id $line; done
 
+### Stage 1.5 : modify config for SSHD and restart it ###
+echo "modifying config for sshd and restart sshd at $NN_IP"
+ssh "root@$NN_IP" "(echo \"useDNS no\" >> /etc/ssh/sshd_config && service ssh restart)"
+ID=1
+for i in $DN_IP; do 
+  echo "modifying config for sshd and restart sshd at $i"
+  ssh "root@$i" "(echo \"useDNS no\" >> /etc/ssh/sshd_config && service ssh restart)"
+  ID=$(($ID+1))
+done
+
 ### Stage 2 : setup /etc/hostname ###
 echo "setting hostname of $NN_IP to hadoop"
 ssh "root@$NN_IP" "echo \"hadoop\" > /etc/hostname"
