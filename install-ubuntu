@@ -34,7 +34,6 @@ done
 ### Stage 3 : setup /etc/hosts ###
 echo "copying /etc/hosts for all hosts"
 scp hosts root@$NN_IP:/etc/hosts
-scp $HOME/.ssh/id_rsa root@$NN_IP:.ssh/.
 for i in $DN_IP; do scp hosts root@$i:/etc/hosts; scp $HOME/.ssh/id_rsa root@$i:.ssh/.; done
 rm hosts
 
