@@ -33,7 +33,7 @@ $spawn=Expect->spawn("ssh-copy-id $username\@$host");
 # log everything if you want
 # $spawn->log_file("/tmp/autossh.log.$$");
 
-my $ret = $spawn->expect(5,
+my $ret = $spawn->expect(180,
 	[ qr/\(yes\/no\)\?\s*$/ => sub { $spawn->send("yes\n"); exp_continue; } ],
 	[ qr/assword:\s*$/ 	=> sub { $spawn->send("$password\n"); exp_continue; } ],
 	[ qr/ogin:\s*$/		=> sub { $spawn->send("$username\n"); exp_continue; } ],
