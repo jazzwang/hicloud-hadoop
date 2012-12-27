@@ -2,10 +2,18 @@
 
 ### Check Configuration Files ###
 if [ ! -f $(pwd)/conf/master ]; then
-  echo "ERROR: missing configuration file: conf/master"; exit;
+  echo "ERROR: missing configuration file: conf/master"
+  echo "Please place an configuration file to specified which node is for NameNode and JobTracker"
+  echo "Format of conf/master:"
+  echo "<IP> root <root's password>"
+  exit
 fi
 if [ ! -f $(pwd)/conf/slave ]; then
-  echo "ERROR: missing configuration file: conf/slave"; exit;
+  echo "ERROR: missing configuration file: conf/slave"
+  echo "Please place an configuration file to specified which node is for DataNode and TaskTracker"
+  echo "Format of conf/slave:"
+  echo "<IP> root <root's password>"
+  exit
 fi
 
 ### Variables ###
