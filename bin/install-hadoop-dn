@@ -1,17 +1,20 @@
 #!/bin/bash
+if [ ! -x /usr/bin/add-apt-repository ]; then
+  apt-get -f -y install python-software-properties
+fi
 echo "---- [1] Installing Sun Java JDK 6 ........ ----"
 if [ ! -x /usr/bin/java ]; then
   echo "deb http://free.nchc.org.tw/ubuntu lucid main restricted universe multiverse" > /etc/apt/sources.list
   apt-get update
-  apt-get -y install python-software-properties
-  add-apt-repository ppa:ferramroberto/java
+  add-apt-repository -y 'deb http://free.nchc.org.tw/debian squeeze non-free'
   cat << EOF | /usr/bin/debconf-set-selections
 sun-java6-bin   shared/accepted-sun-dlj-v1-1    select true
 sun-java6-jdk   shared/accepted-sun-dlj-v1-1    select true
 sun-java6-jre   shared/accepted-sun-dlj-v1-1    select true
 EOF
   apt-get update
-  apt-get -y install sun-java6-jdk
+  apt-get -y --force-yes install sun-java6-jdk
+  add-apt-repository -r 'deb http://free.nchc.org.tw/debian squeeze non-free'
 fi
 
 echo "---- [2] Installing Hadoop 0.20.2 ........ ----"
