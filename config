@@ -1,0 +1,25 @@
+#!/bin/bash
+
+DIALOG=/usr/bin/whiptail
+TMP="/tmp/$$$$$$"
+
+if [ ! -x /usr/bin/whiptail ]; then
+  apt-get install whiptail
+fi
+if [ -d $(pwd)/conf ]; then
+  rm -rf $(pwd)/conf
+fi
+mkdir -p $(pwd)/conf
+CSV_FILES=`ls ~/*.csv`
+if [ ! -z "CSV_FILES" ]; then
+  for i in $CSV_FILES; do
+    FILE=`basename $i`
+    OPTIONS="$OPTIONS $FILE \"$i\""
+  done
+  whiptail --menu "Please Choose ONE of these password files" 0 0 0 $OPTIONS 2> "$TMP"
+  read PASSWD < "$TMP"; rm "$TMP"
+  cat ~/$PASSWD | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $3,$4,$5 }' | grep -v "帳號" | head -n 1 > $(pwd)/conf/master
+  cat ~/$PASSWD | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $3,$4,$5 }' | grep -v "帳號" > $(pwd)/conf/slave
+else
+  echo "Please upload CSV password file to /root directory!!"
+fi
