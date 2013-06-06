@@ -1,4 +1,4 @@
-RELEASE=0.0.2
+RELEASE=0.0.3
 
 all: help
 
