@@ -20,22 +20,24 @@ Steps
  * Extract passwd.zip, you will need the CSV file
  * Connecting to the First Node you would like to act as NameNode and JobTracker
  * First, please generate SSH key for the First Node (a.k.a. Head Node)
-
 ```
     ~# ssh-keygen -t rsa -P ""
 ```
-
  * Then you have to install needed packages to run this automation script
- 
 ```
      ~# apt-get -y install libexpect-perl dsh git
 ```
-
  * Download current version of hicloud-hadoop script from sourceforge
-
 ```
     ~# git clone git://github.com/jazzwang/hicloud-hadoop.git
 ```
-
  * Upload the CSV file using PieTTY
-
+ * Run ./config to generate conf/master and conf/slave for your cluster based on uploaded CSV password file
+```
+    ~# cd hicloud-hadoop
+    ~/hicloud-hadoop# ./config
+    ~/hicloud-hadoop# ./install-ubuntu
+```
+ * After installation, you will see messages like this:
+```
+```
