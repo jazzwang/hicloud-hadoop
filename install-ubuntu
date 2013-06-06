@@ -38,6 +38,7 @@ ssh "root@$NN_IP" "echo \"hadoop\" > /etc/hostname"
 ssh "root@$NN_IP" "hostname -F /etc/hostname"
 echo "$NN_IP	hadoop" > hosts
 ID=1
+mkdir -p $HOME/.dsh
 echo "" > $HOME/.dsh/machines.list
 for i in $DN_IP; do 
   echo "setting hostname of $i to node$ID"

@@ -1,6 +1,6 @@
 #!/bin/bash
 if [ ! -x /usr/bin/add-apt-repository ]; then
-  sudo apt-get -f -y install python-software-properties
+  apt-get -f -y install python-software-properties
 fi
 echo "---- [1] Installing Sun Java JDK 6 ........ ----"
 if [ ! -x /usr/bin/java ]; then
@@ -12,7 +12,7 @@ sun-java6-jdk   shared/accepted-sun-dlj-v1-1    select true
 sun-java6-jre   shared/accepted-sun-dlj-v1-1    select true
 EOF
   apt-get update
-  apt-get -y install sun-java6-jdk
+  apt-get -y --force-yes install sun-java6-jdk
   add-apt-repository -r 'deb http://free.nchc.org.tw/debian squeeze non-free'
 fi
 
