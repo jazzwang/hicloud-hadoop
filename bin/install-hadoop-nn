@@ -65,7 +65,7 @@ EOF
 <configuration>
   <property>
     <name>fs.default.name</name>
-    <value>hdfs://hadoop:9000</value>
+    <value>hdfs://node1:9000</value>
   </property>
   <property>
     <name>hadoop.tmp.dir</name>
@@ -109,7 +109,7 @@ EOF
 <configuration>
   <property>
     <name>mapred.job.tracker</name>
-    <value>hadoop:9001</value>
+    <value>node1:9001</value>
   </property>
 </configuration>
 EOF
