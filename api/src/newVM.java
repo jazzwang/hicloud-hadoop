@@ -50,7 +50,12 @@ public class newVM
 	// http://hws.hicloud.hinet.net/hws-doc/rest/vm/template_instancetype_mapping.html
 	RunInstancesRequest request = new RunInstancesRequest();
 	request.setImageId("hi-dgf5332e");
-	request.setCount(1);
+	if (args.length <1)
+	{
+	  request.setCount(1);
+	} else {
+	  request.setCount(Integer.parseInt(args[0]));
+	}
 	request.setInstanceName("hdp");
 	request.setMonitoringEnabled(false);
 	request.setInstanceType("HC1.S.LINUX");
@@ -58,38 +63,5 @@ public class newVM
 	RunInstancesResponse runInstancesResult = serviceProxy.runInstances(request);
 	// 顯示RunInstancesResponse結果
 	System.out.println(runInstancesResult);
-
-	// 步驟2:查詢虛擬機資訊
-	// 新增Describe Instance Request
-	DescribeInstancesRequest describeRequest = new DescribeInstancesRequest();
-	// 根據建立RunInstance回傳的uuid查詢，虛擬機訂單狀態
-	describeRequest.setOrderUuid(runInstancesResult.getOrderUuidList());
-
-	boolean isProvisionFinished = false;
-	// 持續查詢虛擬機資訊，直到虛擬機供裝完畢
-	while (!isProvisionFinished)
-	{
-	    // 呼叫CaaS API查詢VM並回傳DescribeInstancesResponse
-	    DescribeInstancesResponse describeInstancesResult = serviceProxy.describeInstances(describeRequest);
-	    // 顯示VM訂單狀態
-	    System.out.println(describeInstancesResult);
-	    List<VirtualMachineEntry> instances = describeInstancesResult.getInstanceList();
-	    for (VirtualMachineEntry instance : instances)
-	    {
-		if (!instance.getProvisionStatus().equals("provisioning"))
-		{
-		    isProvisionFinished = true;
-		}
-	    }
-
-	    try
-	    {
-		Thread.sleep(5000);
-	    }
-	    catch (InterruptedException e)
-	    {
-		e.printStackTrace();
-	    }
-	}
     }
 }
