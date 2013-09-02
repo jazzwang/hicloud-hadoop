@@ -20,6 +20,19 @@ fi
 NN_IP=$(cat $(pwd)/conf/master | awk '{ print $1 }')
 DN_IP=$(cat $(pwd)/conf/slave  | awk '{ print $1 }')
 
+### Stage 0 : generate SSH key ###
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
+  ssh-keygen -t rsa -P ""
+fi
+
+if [ ! -d /usr/share/doc/libexpect-perl ]; then
+  apt-get -y install libexpect-perl
+fi
+
+if [ ! -x /usr/bin/dsh ]; then
+  apt-get -y install dsh
+fi
+
 ### Stage 1 : root SSH Key Exchange ###
 cat $(pwd)/conf/master | while read line; do $(pwd)/bin/ssh-cp-id $line; done
 cat $(pwd)/conf/slave | while read line; do $(pwd)/bin/ssh-cp-id $line; done
