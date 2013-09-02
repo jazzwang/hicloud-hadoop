@@ -1,0 +1,33 @@
+<project name="caas_api" default="jar">
+  <property name="bindir"	  value="${basedir}/class" />
+  <property name="docdir"	  value="${basedir}/doc" />
+  <property name="srcdir"	  value="${basedir}/src" />
+  <property name="libdir"	  value="${basedir}/lib" />
+  <property name="main-class"	  value="newVM" />
+  <property name="jarname"	  value="${main-class}.jar" />
+
+  <target name="compile" description="Compile all Java sources">
+    <mkdir dir="${bindir}" />
+    <javac debug="true" destdir="${bindir}">
+      <src path="${srcdir}" />
+      <classpath>
+        <fileset dir="${libdir}">
+          <include name="*.jar" />
+        </fileset>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="jar" depends="compile" description="Package the classes into a .jar file">
+      <jar destfile="${jarname}" basedir="${bindir}">
+      <manifest>
+	  <attribute name="Main-Class" value="${main-class}"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <target name="clean" description="Remove all compilation products to ensure a clean build">
+    <delete dir="${bindir}" />
+    <delete file="${jarname}" />
+  </target>
+</project>
