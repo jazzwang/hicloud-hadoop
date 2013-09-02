@@ -17,6 +17,8 @@
       <delete>
 	  <fileset dir="${basedir}">
 	      <include name="*.class"/>
+	      <include name="*.log"/>
+	      <include name="*.json"/>
 	  </fileset>
       </delete>
   </target>
