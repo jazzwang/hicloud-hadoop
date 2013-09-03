@@ -67,7 +67,7 @@ scp hosts root@$NN_IP:/etc/hosts
 for i in $DN_IP; do scp hosts root@$i:/etc/hosts; scp $HOME/.ssh/id_rsa root@$i:.ssh/.; done
 rm hosts
 
-dsh -a apt-get -y install git
-dsh -a adduser hlab
-dsh -a adduser hlab sudo
-dsh -a 'echo -e "passwd\npasswd\n" | passwd hlab'
+dsh -a -c apt-get -y install git
+dsh -a -c adduser hlab
+dsh -a -c adduser hlab sudo
+dsh -a -c 'echo -e "passwd\npasswd\n" | passwd hlab'
