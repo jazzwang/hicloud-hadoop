@@ -1,0 +1,103 @@
+#!/bin/bash
+
+DIALOG=/usr/bin/whiptail
+TMP="/tmp/$$$$$$"
+
+if [ ! -x /usr/bin/whiptail ]; then
+  apt-get install whiptail
+fi
+if [ -d $(pwd)/conf ]; then
+  rm -rf $(pwd)/conf
+fi
+mkdir -p $(pwd)/conf
+CSV_FILES=`ls ~/*.csv`
+if [ ! -z "CSV_FILES" ]; then
+  for i in $CSV_FILES; do
+    FILE=`basename $i`
+    OPTIONS="$OPTIONS $FILE \"$i\""
+  done
+  whiptail --menu "Please Choose ONE of these password files" 0 0 0 $OPTIONS 2> "$TMP"
+  read PASSWD < "$TMP"; rm "$TMP"
+  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' | head -n 1 > $(pwd)/conf/master
+  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' > $(pwd)/conf/slave
+else
+  echo "Please upload CSV password file to /root directory!!"
+fi
+
+### Check Configuration Files ###
+if [ ! -f $(pwd)/conf/master ]; then
+  echo "ERROR: missing configuration file: conf/master"
+  echo "Please place an configuration file to specified which node is for NameNode and JobTracker"
+  echo "Format of conf/master:"
+  echo "<IP> root <root's password>"
+  exit
+fi
+if [ ! -f $(pwd)/conf/slave ]; then
+  echo "ERROR: missing configuration file: conf/slave"
+  echo "Please place an configuration file to specified which node is for DataNode and TaskTracker"
+  echo "Format of conf/slave:"
+  echo "<IP> root <root's password>"
+  exit
+fi
+
+### Variables ###
+NN_IP=$(cat $(pwd)/conf/master | awk '{ print $1 }')
+DN_IP=$(cat $(pwd)/conf/slave  | awk '{ print $1 }')
+
+### Stage 0 : generate SSH key ###
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
+  ssh-keygen -t rsa -P ""
+fi
+
+if [ ! -d /usr/share/doc/libexpect-perl ]; then
+  apt-get -y install libexpect-perl
+fi
+
+if [ ! -x /usr/bin/dsh ]; then
+  apt-get -y install dsh
+fi
+
+### Stage 1 : root SSH Key Exchange ###
+cat $(pwd)/conf/master | while read line; do $(pwd)/bin/ssh-cp-id $line; done
+cat $(pwd)/conf/slave | while read line; do $(pwd)/bin/ssh-cp-id $line; done
+
+### Stage 1.5 : modify config for SSHD and restart it ###
+echo "modifying config for sshd and restart sshd at $NN_IP"
+ssh "root@$NN_IP" "(echo \"useDNS no\" >> /etc/ssh/sshd_config && service ssh restart)"
+for i in $DN_IP; do 
+  echo "modifying config for sshd and restart sshd at $i"
+  ssh "root@$i" "(echo \"useDNS no\" >> /etc/ssh/sshd_config && service ssh restart)"
+done
+
+### Stage 2 : setup /etc/hostname ###
+echo "setting hostname of $NN_IP to hadoop"
+ssh "root@$NN_IP" "echo \"hadoop\" > /etc/hostname"
+ssh "root@$NN_IP" "hostname -F /etc/hostname"
+ID=1
+mkdir -p $HOME/.dsh
+echo "" > $HOME/.dsh/machines.list
+for i in $DN_IP; do 
+  echo "setting hostname of $i to node$ID"
+  ssh "root@$i" "echo \"node$ID\" > /etc/hostname"
+  ssh "root@$i" "hostname -F /etc/hostname"
+  echo "$i	$i	node$ID" >> hosts
+  echo "$i" >> $HOME/.dsh/machines.list
+  ID=$(($ID+1))
+done
+
+### Stage 3 : setup /etc/hosts ###
+echo "copying /etc/hosts for all hosts"
+scp hosts root@$NN_IP:/etc/hosts
+for i in $DN_IP; do scp hosts root@$i:/etc/hosts; scp $HOME/.ssh/id_rsa root@$i:.ssh/.; done
+rm hosts
+
+dsh -a -c apt-get -y install git
+dsh -a -c adduser user
+dsh -a -c adduser user sudo
+dsh -a -c 'echo -e "hadoop\nhadoop\n" | passwd user'
+dsh -a -c 'locale-gen zh_TW.UTF-8'
+#dsh -a -c wget -q http://free.nchc.org.tw/ubuntu/pool/universe/s/shellinabox/shellinabox_2.14-1_amd64.deb
+#dsh -a -c dpkg -i shellinabox_2.14-1_amd64.deb
+#dsh -a -c sed -i 's#SHELLINABOX_PORT=4200#SHELLINABOX_PORT=443#' /etc/default/shellinabox
+#dsh -a -c /etc/init.d/shellinabox stop
+#dsh -a -c /etc/init.d/shellinabox start
