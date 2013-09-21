@@ -4,7 +4,7 @@ DIALOG=/usr/bin/whiptail
 TMP="/tmp/$$$$$$"
 
 if [ ! -x /usr/bin/whiptail ]; then
-  apt-get install whiptail
+  apt-get -y install whiptail
 fi
 if [ -d $(pwd)/conf ]; then
   rm -rf $(pwd)/conf
