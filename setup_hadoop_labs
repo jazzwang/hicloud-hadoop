@@ -18,8 +18,8 @@ if [ ! -z "CSV_FILES" ]; then
   done
   whiptail --menu "Please Choose ONE of these password files" 0 0 0 $OPTIONS 2> "$TMP"
   read PASSWD < "$TMP"; rm "$TMP"
-  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' | head -n 1 > $(pwd)/conf/master
-  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' > $(pwd)/conf/slave
+  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' | grep -v "^ " | head -n 1 > $(pwd)/conf/master
+  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' | grep -v "^ " > $(pwd)/conf/slave
 else
   echo "Please upload CSV password file to /root directory!!"
 fi
