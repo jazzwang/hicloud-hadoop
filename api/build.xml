@@ -16,9 +16,15 @@
   <target name="clean" description="Remove all compilation products to ensure a clean build">
       <delete>
 	  <fileset dir="${basedir}">
-	      <include name="*.class"/>
 	      <include name="*.log"/>
 	      <include name="*.json"/>
+	  </fileset>
+      </delete>
+  </target>
+  <target name="purge" description="Remove all compilation products to ensure a clean build">
+      <delete>
+	  <fileset dir="${basedir}">
+	      <include name="*.class"/>
 	  </fileset>
       </delete>
   </target>

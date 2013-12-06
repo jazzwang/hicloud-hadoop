@@ -81,7 +81,7 @@ for i in $DN_IP; do
   ssh "root@$i" "echo \"node$ID\" > /etc/hostname"
   ssh "root@$i" "hostname -F /etc/hostname"
   echo "$i	$i	node$ID" >> hosts
-  echo "$i" >> $HOME/.dsh/machines.list
+  echo "root@$i" >> $HOME/.dsh/machines.list
   ID=$(($ID+1))
 done
 
@@ -91,12 +91,12 @@ scp hosts root@$NN_IP:/etc/hosts
 for i in $DN_IP; do scp hosts root@$i:/etc/hosts; scp $HOME/.ssh/id_rsa root@$i:.ssh/.; done
 rm hosts
 
-dsh -a -c apt-get -y install git
-dsh -a -c adduser user
-dsh -a -c adduser user sudo
-dsh -a -c 'echo -e "hadoop\nhadoop\n" | passwd user'
 dsh -a -c 'locale-gen zh_TW.UTF-8'
-#dsh -a -c wget -q http://free.nchc.org.tw/ubuntu/pool/universe/s/shellinabox/shellinabox_2.14-1_amd64.deb
+dsh -a -c apt-get -y install git
+dsh -a -c adduser hdp
+dsh -a -c adduser hdp sudo
+dsh -a -c 'echo -e "hadoop.TW\nhadoop.TW\n" | passwd hadoop'
+dsh -a -c wget -q http://free.nchc.org.tw/ubuntu/pool/universe/s/shellinabox/shellinabox_2.14-1_amd64.deb
 #dsh -a -c dpkg -i shellinabox_2.14-1_amd64.deb
 #dsh -a -c sed -i 's#SHELLINABOX_PORT=4200#SHELLINABOX_PORT=443#' /etc/default/shellinabox
 #dsh -a -c /etc/init.d/shellinabox stop
