@@ -1,5 +1,29 @@
 #!/bin/bash
 
+DIALOG=/usr/bin/whiptail
+TMP="/tmp/$$$$$$"
+
+if [ ! -x /usr/bin/whiptail ]; then
+  sudo apt-get install whiptail
+fi
+if [ -d $(pwd)/conf ]; then
+  rm -rf $(pwd)/conf
+fi
+mkdir -p $(pwd)/conf
+CSV_FILES=`ls ~/*.csv`
+if [ ! -z "CSV_FILES" ]; then
+  for i in $CSV_FILES; do
+    FILE=`basename $i`
+    OPTIONS="$OPTIONS $FILE \"$i\""
+  done
+  whiptail --menu "Please Choose ONE of these password files" 0 0 0 $OPTIONS 2> "$TMP"
+  read PASSWD < "$TMP"; rm "$TMP"
+  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' | grep -v "^ " | head -n 1 > $(pwd)/conf/master
+  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' | grep -v "^ " > $(pwd)/conf/slave
+else
+  echo "Please upload CSV password file to /root directory!!"
+fi
+
 ### Check Configuration Files ###
 if [ ! -f $(pwd)/conf/master ]; then
   echo "ERROR: missing configuration file: conf/master"
@@ -20,6 +44,19 @@ fi
 NN_IP=$(cat $(pwd)/conf/master | awk '{ print $1 }')
 DN_IP=$(cat $(pwd)/conf/slave  | awk '{ print $1 }')
 
+### Stage 0 : generate SSH key ###
+if [ ! -f ~/.ssh/id_rsa.pub ]; then
+  ssh-keygen -t rsa -P ""
+fi
+
+if [ ! -d /usr/share/doc/libexpect-perl ]; then
+  sudo apt-get -y install libexpect-perl
+fi
+
+if [ ! -x /usr/bin/dsh ]; then
+  sudo apt-get -y install dsh
+fi
+
 ### Stage 1 : root SSH Key Exchange ###
 cat $(pwd)/conf/master | while read line; do $(pwd)/bin/ssh-cp-id $line; done
 cat $(pwd)/conf/slave | while read line; do $(pwd)/bin/ssh-cp-id $line; done
@@ -36,16 +73,15 @@ done
 echo "setting hostname of $NN_IP to hadoop"
 ssh "root@$NN_IP" "echo \"hadoop\" > /etc/hostname"
 ssh "root@$NN_IP" "hostname -F /etc/hostname"
-echo "$NN_IP	hadoop" > hosts
-ID=1
+ID=0
 mkdir -p $HOME/.dsh
 echo "" > $HOME/.dsh/machines.list
 for i in $DN_IP; do 
   echo "setting hostname of $i to node$ID"
   ssh "root@$i" "echo \"node$ID\" > /etc/hostname"
   ssh "root@$i" "hostname -F /etc/hostname"
-  echo "$i	node$ID" >> hosts
-  echo "$i" >> $HOME/.dsh/machines.list
+  echo "$i	$i	node$ID" >> hosts
+  echo "root@$i" >> $HOME/.dsh/machines.list
   ID=$(($ID+1))
 done
 
