@@ -40,6 +40,9 @@ public class listVM
 	// 若使用Proxy Server，可透過以下方式設定
 	//client.getConfiguration().setProxyServerIp("proxy.cht.com.tw");
 	//client.getConfiguration().setProxyServerPort(8080);
+	
+	// 略過 hws.hicloud.hint.net 的https憑證檢查
+	client.getConfiguration().setHttpsVerify(false);
 
 	// 建立VM Service Proxy，負責代理處理參數傳遞與資料驗證
 	VirtualMachineService serviceProxy = client.newServiceProxy(VirtualMachineService.class);
