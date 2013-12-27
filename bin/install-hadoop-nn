@@ -16,14 +16,14 @@ EOF
   add-apt-repository -r 'deb http://free.nchc.org.tw/debian squeeze non-free'
 fi
 
-echo "---- [2] Installing Hadoop 0.20.2 ........ ----"
+echo "---- [2] Installing Hadoop 1.2.1 ........ ----"
 cd /opt
 {
   if [ ! -x /opt/hadoop ]; then
-    sudo wget http://archive.apache.org/dist/hadoop/core/hadoop-0.20.2/hadoop-0.20.2.tar.gz
-    sudo tar zxvf hadoop-0.20.2.tar.gz
-    sudo rm -f hadoop-0.20.2.tar.gz
-    sudo mv hadoop-0.20.2/ hadoop
+    sudo wget http://archive.apache.org/dist/hadoop/core/hadoop-1.2.1/hadoop-1.2.1.tar.gz
+    sudo tar zxvf hadoop-1.2.1.tar.gz
+    sudo rm -f hadoop-1.2.1.tar.gz
+    sudo mv hadoop-1.2.1/ hadoop
     sudo chmod a+w -R hadoop
     if [ ! -x /var/hadoop ]; then
       sudo mkdir -p /var/hadoop

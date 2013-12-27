@@ -19,7 +19,7 @@ if [ ! -z "CSV_FILES" ]; then
   whiptail --menu "Please Choose ONE of these password files" 0 0 0 $OPTIONS 2> "$TMP"
   read PASSWD < "$TMP"; rm "$TMP"
   cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' | grep -v "^ " | head -n 1 > $(pwd)/conf/master
-  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' | grep -v "^ " > $(pwd)/conf/slave
+  cat ~/$PASSWD | grep "hdp" | grep "=\"root" | sed "s#\,# #g" | tr -d "\"|\=" | awk '{ print $4,$5,$6 }' | grep -v "^ " | grep -v "$(cat $(pwd)/conf/master)" > $(pwd)/conf/slave
 else
   echo "Please upload CSV password file to /root directory!!"
 fi
@@ -73,7 +73,7 @@ done
 echo "setting hostname of $NN_IP to hadoop"
 ssh "root@$NN_IP" "echo \"hadoop\" > /etc/hostname"
 ssh "root@$NN_IP" "hostname -F /etc/hostname"
-ID=0
+ID=1
 mkdir -p $HOME/.dsh
 echo "" > $HOME/.dsh/machines.list
 for i in $DN_IP; do 
