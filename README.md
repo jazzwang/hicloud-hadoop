@@ -51,3 +51,7 @@ Steps
 ```
     Please check http://IP:50070 and http://IP:50030 for the status
 ```
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/jazzwang/hicloud-hadoop/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
